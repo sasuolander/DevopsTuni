@@ -4,8 +4,8 @@ services:
   ORIG:
     depends_on:
       - messagequeue
-    container_name: obse-container
-    image: obse-image
+    container_name: orig-container
+    image: orig-image
     build:
       dockerfile: HttpServerORIG
       context: .
@@ -40,7 +40,7 @@ services:
      - backend
     volumes:
      - filestorage:/tmp/log.txt
-  HTTPSERV:
+  SERV:
     depends_on:
       - OBSE
       - IMED
