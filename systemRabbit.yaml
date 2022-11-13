@@ -2,7 +2,10 @@ version: "3"
 
 services:
   ORIG:
+    restart: on-failure
     depends_on:
+      - messagequeue
+    links:
       - messagequeue
     container_name: orig-container
     image: orig-image
@@ -14,7 +17,10 @@ services:
     networks:
       - backend
   IMED:
+    restart: on-failure
     depends_on:
+      - messagequeue
+    links:
       - messagequeue
     container_name: imed-container
     image: imed-image
@@ -26,7 +32,10 @@ services:
     networks:
       - backend
   OBSE:
+    restart: on-failure
     depends_on:
+      - messagequeue
+    links:
       - messagequeue
     container_name: obse-container
     image: obse-image
@@ -63,6 +72,11 @@ services:
     expose:
       - "15672"
       - "5672"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     networks:
       - backend
 
