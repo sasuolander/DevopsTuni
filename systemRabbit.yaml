@@ -13,7 +13,7 @@ services:
       dockerfile: HttpServerORIG.dockerfile
       context: .
     environment:
-      - connection='guest:guest@messagequeue:5672'
+      - connection=guest:guest@messagequeue
     networks:
       - backend
   IMED:
@@ -28,7 +28,7 @@ services:
       dockerfile: HttpServerIMED.dockerfile
       context: .
     environment:
-      - connection='guest:guest@messagequeue:5672'
+      - connection=guest:guest@messagequeue
     networks:
       - backend
   OBSE:
@@ -43,7 +43,7 @@ services:
       dockerfile: HttpServerOBSE.dockerfile
       context: .
     environment:
-      - connection='guest:guest@messagequeue:5672'
+      - connection=guest:guest@messagequeue
     networks:
      - backend
     volumes:
