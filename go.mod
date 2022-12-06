@@ -2,7 +2,4 @@ module mina.fi/devopstuni
 
 go 1.19
 
-
-require (
-
-        )
+require github.com/rabbitmq/amqp091-go v1.5.0

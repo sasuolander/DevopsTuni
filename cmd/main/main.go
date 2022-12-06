@@ -20,6 +20,8 @@ func main() {
 		pkg.HttpServerOBSE("compse140.o", "compse140.i")
 	case "HttpServerIMED":
 		pkg.HttpServerIMED("compse140.i", "compse140.o")
+	case "ApiGateWay":
+		pkg.ApiGateWay("compse140.i", "compse140.o")
 	default:
 		fmt.Println("unknown mode")
 		errors.New("unknown mode")
