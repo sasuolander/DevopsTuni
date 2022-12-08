@@ -1,8 +1,9 @@
 FROM golang:alpine3.16
 WORKDIR app
 
-COPY main.go /app/main.go
-RUN go mod init main
-RUN go get -t -v github.com/rabbitmq/amqp091-go
-RUN go build -o /app/gobuild/RabbitMSQ /app/main.go
-ENTRYPOINT ["/app/gobuild/RabbitMSQ", "HttpServerOBSE"]
+EXPOSE 3333
+COPY . .
+#RUN ls
+RUN chmod 777 .
+RUN go build -o gobuild/devopstuniapp cmd/main/main.go
+ENTRYPOINT ["gobuild/devopstuniapp", "HttpServerOBSE"]

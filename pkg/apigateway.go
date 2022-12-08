@@ -27,7 +27,7 @@ func ApiGateWay(routes []Route) {
 	http.HandleFunc("/message", forwardRequest)
 	http.HandleFunc("/state", forwardRequest)
 	http.HandleFunc("/state", forwardRequest) // PUT (payload “INIT”, “PAUSED”, “RUNNING”, “SHUTDOWN”)
-	http.HandleFunc("//run-log", forwardRequest)
+	http.HandleFunc("/run-log", forwardRequest)
 	http.HandleFunc("/message", forwardRequest)
 
 	err := http.ListenAndServe(":3333", nil)
