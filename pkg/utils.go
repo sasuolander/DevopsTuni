@@ -68,6 +68,31 @@ func publicEvent(ch *amqp.Channel, ctx context.Context, queue amqp.Queue, body s
 	failOnError(err, "Failed to publish a message")
 }
 
+func publicEventExchange(ch *amqp.Channel, ctx context.Context, exchangeName string, body string) {
+	var err error
+	err = ch.PublishWithContext(ctx,
+		exchangeName, // exchange
+		"",           // routing key
+		false,        // mandatory
+		false,        // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(body),
+		})
+	failOnError(err, "Failed to publish a message")
+}
+
+func exchangeBindingToQueue(ch *amqp.Channel, exchange string, queue string) {
+	err := ch.QueueBind(
+		queue,    // queue name
+		"",       // routing key
+		exchange, // exchange
+		false,
+		nil,
+	)
+	failOnError(err, "Failed to bind a queue")
+}
+
 func consumeEvent(ch *amqp.Channel, queueName string) string {
 	msgs, err := ch.Consume(
 		queueName, // queue
@@ -119,4 +144,19 @@ func createQueue(name string, ch *amqp.Channel) amqp.Queue {
 	)
 	failOnError(err, "Failed to declare a queue")
 	return queue
+}
+
+func createExchange(name string, ch *amqp.Channel) string {
+	err := ch.ExchangeDeclare(
+		name,     // name
+		"fanout", // fanout
+		false,    // delete when unused
+		false,
+		false, // exclusive
+		true,  // no-wait
+		nil,   // arguments
+	)
+	failOnError(err, "Failed to declare a exchange")
+
+	return name
 }

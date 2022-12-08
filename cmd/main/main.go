@@ -17,9 +17,9 @@ func main() {
 	case "HttpServerORIG":
 		pkg.HttpServerORIG("compse140.o")
 	case "HttpServerOBSE":
-		pkg.HttpServerOBSE("compse140.o", "compse140.i")
+		pkg.HttpServerOBSE("compse140.o-1", "compse140.i")
 	case "HttpServerIMED":
-		pkg.HttpServerIMED("compse140.i", "compse140.o")
+		pkg.HttpServerIMED("compse140.i", "compse140.o-2")
 	case "ApiGateWay":
 		//pkg.ApiGateWay("compse140.i", "compse140.o")
 	default:

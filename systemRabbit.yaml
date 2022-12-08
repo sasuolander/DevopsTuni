@@ -64,6 +64,18 @@ services:
       - 3333:3333
     volumes:
       - filestorage:/tmp/log.txt
+  database:
+      image: mongo:5.0
+      ports:
+        - "27017:27017"
+      volumes:
+        - mondbdatabase:/apps/mongo/data
+      #environment:
+      #  - MONGODB_USERNAME=salasana
+      #  - MONGODB_PASSWORD=salasana
+      #  - MONGODB_DATABASE=test
+      networks:
+        - backend
   messagequeue:
     image: rabbitmq:3-management
     ports:
