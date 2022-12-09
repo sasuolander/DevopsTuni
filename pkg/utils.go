@@ -14,8 +14,6 @@ import (
 	"strings"
 )
 
-const uri = "mongodb://user:pass@sample.host:27017/?maxPoolSize=20&w=majority"
-
 func databaseConnection(url string) *mongo.Client {
 	// Create a new client and connect to the server
 	log.Print(url)
@@ -186,7 +184,6 @@ func envOrString(env string, parameter string) string {
 	}
 }
 
-// guest:guest@localhost:5672
 func openConnectionAndChannel(connectionStringPrm string) *amqp.Channel {
 	var connectionString = fmt.Sprintf("amqp://%s", envOrString(os.Getenv("connection"), connectionStringPrm))
 	log.Print(connectionString)

@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-func HttpServ(databaseString string, database string) {
+func HttpServ() {
 
 	http.HandleFunc("/", getRoot)
 
