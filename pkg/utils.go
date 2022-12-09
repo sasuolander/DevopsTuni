@@ -54,13 +54,13 @@ func failOnError(err error, msg string) {
 	}
 }
 
-func publicEvent(ch *amqp.Channel, ctx context.Context, queue amqp.Queue, body string) {
+func publicEvent(ch *amqp.Channel, ctx context.Context, name string, body string) {
 	var err error
 	err = ch.PublishWithContext(ctx,
-		"",         // exchange
-		queue.Name, // routing key
-		false,      // mandatory
-		false,      // immediate
+		"",    // exchange
+		name,  // routing key
+		false, // mandatory
+		false, // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(body),
@@ -125,7 +125,8 @@ func envOrString(env string, parameter string) string {
 
 // guest:guest@localhost:5672
 func openConnectionAndChannel(connectionStringPrm string) *amqp.Channel {
-	var connectionString = fmt.Sprintf("amqp://%s/", envOrString(os.Getenv("connection"), connectionStringPrm))
+	var connectionString = fmt.Sprintf("amqp://%s", envOrString(os.Getenv("connection"), connectionStringPrm))
+	log.Print(connectionString)
 	conn, err := amqp.Dial(connectionString)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	ch, err := conn.Channel()

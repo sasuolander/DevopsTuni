@@ -77,7 +77,10 @@ services:
       networks:
         - backend
   messagequeue:
-    image: rabbitmq:3-management
+    image: rabbitmqOwn
+    build:
+      dockerfile: rabbitmq.dockerfile
+      context: .
     ports:
       - "15672:15672"
       - "5672:5672"
@@ -97,3 +100,4 @@ networks:
 
 volumes:
   filestorage:
+  mondbdatabase:

@@ -15,11 +15,11 @@ func main() {
 	case "HttpServ":
 		pkg.HttpServ()
 	case "HttpServerORIG":
-		pkg.HttpServerORIG("compse140.o")
+		pkg.HttpServerORIG("compse140.o", true, "guest1:guest1@localhost:5672")
 	case "HttpServerOBSE":
-		pkg.HttpServerOBSE("compse140.o-1", "compse140.i")
+		pkg.HttpServerOBSE("compse140.o-1", "compse140.i", "guest1:guest1@localhost:5672")
 	case "HttpServerIMED":
-		pkg.HttpServerIMED("compse140.i", "compse140.o-2")
+		pkg.HttpServerIMED("compse140.i", "compse140.o-2", true, "guest1:guest1@localhost:5672")
 	case "ApiGateWay":
 		//pkg.ApiGateWay("compse140.i", "compse140.o")
 	default:
