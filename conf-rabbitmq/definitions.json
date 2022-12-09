@@ -74,7 +74,7 @@
     {
       "source": "compse140.o-ex",
       "vhost": "/",
-      "destination": "compse140.o-1",
+      "destination": "compse140.o-2",
       "destination_type": "queue",
       "routing_key": "",
       "arguments": {}

@@ -4,48 +4,102 @@ import (
 	"context"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
-func getRoot(w http.ResponseWriter, r *http.Request) {
-	fileBytes, err := os.ReadFile("/tmp/log.txt")
+const uri = "mongodb://user:pass@sample.host:27017/?maxPoolSize=20&w=majority"
+
+func databaseConnection(url string) *mongo.Client {
+	// Create a new client and connect to the server
+	log.Print(url)
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(url))
+	if err != nil {
+		failOnError(err, "Failed to connect")
+		panic(err)
+	}
+	// Ping the primary
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
+	}
+	fmt.Println("Successfully connected and pinged.")
+	return client
+}
+
+func insertItem(client *mongo.Client, database string, message string, collectionName string) {
+	coll := client.Database(database).Collection(collectionName)
+	doc := bson.D{{"message", message}}
+	result, err := coll.InsertOne(context.TODO(), doc)
+	failOnError(err, "Failed to insert")
+	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
+}
+
+type logMessage struct {
+	Message string `json:"message"`
+}
+
+func getItems(client *mongo.Client, database string, collectionName string) []logMessage {
+	coll := client.Database(database).Collection(collectionName)
+	opts := options.Find()
+	cursor, err := coll.Find(context.TODO(), bson.D{{}}, opts)
 	if err != nil {
 		panic(err)
 	}
+	var results []logMessage
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		panic(err)
+	}
+
+	for cursor.Next(context.TODO()) {
+		//Create a value into which the single document can be decoded
+		var elem logMessage
+		err := cursor.Decode(&elem)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		results = append(results, elem)
+
+	}
+
+	return results
+}
+
+func getRoot(w http.ResponseWriter, r *http.Request) {
+
+	var client = databaseConnection("mongodb://localhost:27017/test")
+	var collectionName = "observLogCollection"
+	var result = getItems(client, "test", collectionName)
+	var stringArray []string
+
+	for _, message := range result {
+		stringArray = append(stringArray, message.Message+" \n")
+	}
+
+	fmt.Print(result)
+	stringByte := strings.Join(stringArray, "\x20\x00")
+	w.Header().Add("Content-Type", "text/plain;charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "text/plain")
-	_, err = w.Write(fileBytes)
+
+	_, err := w.Write([]byte(stringByte))
 	if err != nil {
 		fmt.Printf("error in server: %s\n", err)
 		return
 	}
-	return
-}
 
-func writer(filename string, message string) {
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	_, err = fmt.Fprintln(f, message)
-	if err != nil {
-		fmt.Println(err)
-		err := f.Close()
-		if err != nil {
-			fmt.Println(err)
-			return
+	defer func() {
+		if err = client.Disconnect(context.TODO()); err != nil {
+			failOnError(err, "Failed to disconnect")
+			panic(err)
 		}
-		return
-	}
-	err = f.Close()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println("file appended successfully")
+	}()
+	return
 }
 
 func failOnError(err error, msg string) {
@@ -91,6 +145,15 @@ func exchangeBindingToQueue(ch *amqp.Channel, exchange string, queue string) {
 		nil,
 	)
 	failOnError(err, "Failed to bind a queue")
+}
+
+func setQos(ch *amqp.Channel) *amqp.Channel {
+	err := ch.Qos(1, 0, true)
+	if err != nil {
+		failOnError(err, "Failed to set QoS")
+		return nil
+	}
+	return ch
 }
 
 func consumeEvent(ch *amqp.Channel, queueName string) string {

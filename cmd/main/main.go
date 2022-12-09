@@ -13,11 +13,11 @@ func main() {
 
 	switch os.Args[1:][0] {
 	case "HttpServ":
-		pkg.HttpServ()
+		pkg.HttpServ("mongodb://localhost:27017/test", "test")
 	case "HttpServerORIG":
 		pkg.HttpServerORIG("compse140.o", true, "guest1:guest1@localhost:5672")
 	case "HttpServerOBSE":
-		pkg.HttpServerOBSE("compse140.o-1", "compse140.i", "guest1:guest1@localhost:5672")
+		pkg.HttpServerOBSE("compse140.o-1", "compse140.i", "guest1:guest1@localhost:5672", "mongodb://localhost:27017/test", "test")
 	case "HttpServerIMED":
 		pkg.HttpServerIMED("compse140.i", "compse140.o-2", true, "guest1:guest1@localhost:5672")
 	case "ApiGateWay":

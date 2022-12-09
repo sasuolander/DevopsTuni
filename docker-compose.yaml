@@ -70,14 +70,14 @@ services:
         - "27017:27017"
       volumes:
         - mondbdatabase:/apps/mongo/data
-      #environment:
-      #  - MONGODB_USERNAME=salasana
-      #  - MONGODB_PASSWORD=salasana
-      #  - MONGODB_DATABASE=test
+      environment:
+        - MONGODB_USERNAME=salasana
+        - MONGODB_PASSWORD=salasana
+        - MONGODB_DATABASE=test
       networks:
         - backend
   messagequeue:
-    image: rabbitmqOwn
+    image: rabbitmqown
     build:
       dockerfile: rabbitmq.dockerfile
       context: .
