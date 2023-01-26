@@ -1,0 +1,152 @@
+version: "3"
+
+services:
+  ORIG:
+    restart: on-failure
+    depends_on:
+      - messagequeue
+    links:
+      - messagequeue
+    container_name: orig-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - rabbitmq=guest1:guest1@messagequeue
+      - mongoDbURL=mongodb://database:27017/test
+      - port=3334
+      - mode=ORIGMain
+    networks:
+      - backend
+  IMED:
+    restart: on-failure
+    depends_on:
+      - messagequeue
+    links:
+      - messagequeue
+    container_name: imed-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - rabbitmq=guest1:guest1@messagequeue
+      - mongoDbURL=mongodb://database:27017/test
+      - mode=IMEDMain
+      - port=3336
+    networks:
+      - backend
+  OBSE:
+    restart: on-failure
+    depends_on:
+      - messagequeue
+    links:
+      - messagequeue
+    container_name: obse-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - rabbitmq=guest1:guest1@messagequeue
+      - mongoDbURL=mongodb://database:27017/test
+      - mode=OBSEMain
+      - port=3335
+    networks:
+     - backend
+  SERV:
+    depends_on:
+      - OBSE
+      - IMED
+      - ORIG
+    container_name: httpserv-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - port=3333
+      - mongoDbURL=mongodb://database:27017/test
+      - mode=HttpServ
+    networks:
+      - backend
+  MONITOR:
+    depends_on:
+        - OBSE
+        - IMED
+        - ORIG
+    container_name: monitor-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - mode=Monitor
+      - httpServ=http://SERV:3333
+      - httpOrigv=http://ORIG:3334
+      - httpObse=http://OBSE:3335
+      - httpImed=http://IMED:3336
+      - mongoDbURL=mongodb://database:27017/test
+      - port=3337
+    networks:
+      - backend
+  APIGATEWAY:
+    depends_on:
+        - OBSE
+        - IMED
+        - ORIG
+        - MONITOR
+    container_name: ApiGateWay-container
+    image: devops-image
+    build:
+      dockerfile: servers.dockerfile
+      context: .
+    environment:
+      - httpOrigv=http://ORIG:3334
+      - httpServ=http://SERV:3333
+      - httServiceStats=http://MONITOR:3337
+      - port=8083
+      - mongoDbURL=mongodb://database:27017/test
+      - rabbitmqUrl=messagequeue:15672
+      - mode=ApiGateWay
+    networks:
+      - backend
+    ports:
+      - 8083:8083
+  database:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mondbdatabase:/apps/mongo/data
+    environment:
+      - MONGODB_USERNAME=salasana
+      - MONGODB_PASSWORD=salasana
+      - MONGODB_DATABASE=test
+    networks:
+      - backend
+  messagequeue:
+    image: rabbitmqown
+    build:
+      dockerfile: rabbitmq.dockerfile
+      context: .
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - "15672"
+      - "5672"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  mondbdatabase:
