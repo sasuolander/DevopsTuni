@@ -23,13 +23,6 @@
   ],
   "queues": [
     {
-      "name": "compse140.o",
-      "vhost": "/",
-      "durable": false,
-      "auto_delete": false,
-      "arguments": {}
-    },
-    {
       "name": "compse140.i",
       "vhost": "/",
       "durable": false,
@@ -37,7 +30,7 @@
       "arguments": {}
     },
     {
-      "name": "compse140.o-1",
+      "name": "compse140.o",
       "vhost": "/",
       "durable": false,
       "auto_delete": false,
@@ -66,7 +59,7 @@
     {
       "source": "compse140.o-ex",
       "vhost": "/",
-      "destination": "compse140.o-1",
+      "destination": "compse140.o",
       "destination_type": "queue",
       "routing_key": "",
       "arguments": {}
