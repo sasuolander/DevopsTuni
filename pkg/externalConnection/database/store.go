@@ -1,25 +1,23 @@
 package database
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"log"
-	"mina.fi/devopstuni/pkg"
+	"mina.fi/devopstuni/pkg/utils"
+	"os"
 )
 
+var basePath = "/temp"
+
 func Connection(url string) *mongo.Client {
-	// Create a new client and connect to the server
-	log.Print(url)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(url))
-	if err != nil {
-		pkg.FailOnError(err, "Failed to connect")
-		panic(err)
-	}
-	// Ping the primary
+	utils.FailOnError(err, "Failed to connect")
+
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
@@ -31,7 +29,7 @@ func InsertItem(client *mongo.Client, database string, message string, collectio
 	coll := client.Database(database).Collection(collectionName)
 	doc := bson.D{{"message", message}}
 	result, err := coll.InsertOne(context.TODO(), doc)
-	pkg.FailOnError(err, "Failed to insert")
+	utils.FailOnError(err, "Failed to insert")
 	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
 }
 
@@ -52,16 +50,52 @@ func GetItems(client *mongo.Client, database string, collectionName string) []lo
 	}
 
 	for cursor.Next(context.TODO()) {
-		//Create a value into which the single document can be decoded
 		var elem logMessage
 		err := cursor.Decode(&elem)
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		utils.FailOnError(err, "Failed to decode")
 		results = append(results, elem)
-
 	}
 
+	return results
+}
+func ConvertToStringArray(result []logMessage) []string {
+	var stringArray []string
+	for _, message := range result {
+		stringArray = append(stringArray, message.Message+" \n")
+	}
+
+	return stringArray
+}
+
+func fileWrite(message string, file string) {
+	data := []byte(message)
+	err := os.WriteFile(basePath+file+".txt", data, 0)
+	if err != nil {
+		utils.FailOnError(err, "Failed to write")
+	}
+
+	fmt.Println("done")
+}
+
+func fileReader(file string) []logMessage {
+	f, err := os.Open(basePath + file + ".txt")
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	scanner.Split(bufio.ScanWords)
+	var results []logMessage
+	for scanner.Scan() {
+		results = append(results, logMessage{Message: scanner.Text()})
+		fmt.Println(scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
 	return results
 }

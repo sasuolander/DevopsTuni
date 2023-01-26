@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  database2:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mondbdatabase:/apps/mongo/data
+    environment:
+      - MONGODB_USERNAME=salasana
+      - MONGODB_PASSWORD=salasana
+      - MONGODB_DATABASE=test
+    networks:
+      - backend
+  messagequeue2:
+    image: rabbitmqown
+    build:
+      dockerfile: rabbitmq.dockerfile
+      context: .
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - "15672"
+      - "5672"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  filestorage:
+  mondbdatabase:

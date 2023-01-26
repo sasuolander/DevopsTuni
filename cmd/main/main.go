@@ -13,15 +13,18 @@ func main() {
 
 	switch os.Args[1:][0] {
 	case "HttpServ":
-		pkg.HttpServ()
+		pkg.ServerStarterServ()
 	case "ORIGMain":
-		pkg.ORIGMain()
+		pkg.ServerStarterORIG()
 	case "OBSEMain":
-		pkg.OBSEMain()
+		pkg.ServerStarterObse()
 	case "IMEDMain":
-		pkg.IMEDMain()
+		pkg.ServerStarterImed()
 	case "ApiGateWay":
-		//pkg.ApiGateWay("compse140.i", "compse140.o")
+		pkg.ServerStarterApiGateWay()
+	case "Monitor":
+		pkg.ServerStarterMonitor()
+
 	default:
 		fmt.Println("unknown mode")
 		errors.New("unknown mode")

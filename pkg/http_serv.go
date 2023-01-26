@@ -2,52 +2,44 @@ package pkg
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"mina.fi/devopstuni/pkg/externalConnection/database"
+	"mina.fi/devopstuni/pkg/utils"
 	"net/http"
-	"os"
 	"strings"
+	"time"
 )
 
-func HttpServ() {
+func ServerStarterServ() {
+	startTime := fmt.Sprintf("%s", time.Now().Format(time.RFC3339))
 
-	http.HandleFunc("/", getLogResponse)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == utils.GET && r.URL.Path == "/ping" {
+			pigApi(w, r, startTime)
+		}
 
-	err := http.ListenAndServe(":3333", nil)
-	if errors.Is(err, http.ErrServerClosed) {
-		fmt.Printf("server closed\n")
-	} else if err != nil {
-		fmt.Printf("error starting server: %s\n", err)
-		os.Exit(1)
-	}
+		if r.URL.Path == "/" {
+			getLogResponse(w, r)
+		}
+
+	})
+	utils.StartServer(utils.Properties.PORT)
 }
 
 func getLogResponse(w http.ResponseWriter, r *http.Request) {
-	var client = database.Connection(Properties()["mongoDbURL"])
-	var collectionName = "observLogCollection"
-	var result = database.GetItems(client, Properties()["dbName"], collectionName)
-	var stringArray []string
+	var client = database.Connection(utils.Properties.MONGODBURL)
+	var collectionName = utils.Properties.OBSERVLOGCOLLECTION
+	var result = database.GetItems(client, utils.Properties.DBNAME, collectionName)
 
-	for _, message := range result {
-		stringArray = append(stringArray, message.Message+" \n")
-	}
-
-	fmt.Print(result)
-	stringByte := strings.Join(stringArray, "\x20\x00")
 	w.Header().Add("Content-Type", "text/plain;charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
-	_, err := w.Write([]byte(stringByte))
-	if err != nil {
-		fmt.Printf("error in server: %s\n", err)
-		return
-	}
+	_, err := w.Write([]byte(strings.Join(database.ConvertToStringArray(result), "\x20\x00")))
+	utils.FailOnError(err, "Error in server")
 
 	defer func() {
 		if err = client.Disconnect(context.TODO()); err != nil {
-			FailOnError(err, "Failed to disconnect")
-			panic(err)
+			utils.FailOnError(err, "Failed to disconnect")
 		}
 	}()
 	return
